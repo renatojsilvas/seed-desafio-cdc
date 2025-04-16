@@ -20,7 +20,11 @@ builder.Services.AddInfrastructure(connectionString);
 
 var app = builder.Build();
 
-app.UseFastEndpoints();
+app.UseFastEndpoints(c =>
+{
+    c.Versioning.Prefix = "v";
+    c.Versioning.PrependToRoute = true;
+});
 app.UseSwaggerGen(); 
 
 app.Run();

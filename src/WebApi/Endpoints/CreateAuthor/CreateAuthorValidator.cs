@@ -1,4 +1,5 @@
 using Application.UseCases;
+using Domain;
 using FastEndpoints;
 using FluentValidation;
 
@@ -16,10 +17,11 @@ public class CreateUserValidator : Validator<CreateAuthorRequest>
             .NotNull().WithMessage("Email is required")
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Email is not valid");
-        
+
         RuleFor(x => x.Description)
-            .NotNull().WithMessage("Description is required")
+            .NotNull()
             .NotEmpty().WithMessage("Description is required")
-            .MaximumLength(400).WithMessage("Description is too long. Max 400 characters");
+            .MaximumLength(Constants.MaxDescriptionLength)
+            .WithMessage($"Description is too long. Max {Constants.MaxDescriptionLength} characters");
     }
 }

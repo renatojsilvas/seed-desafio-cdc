@@ -1,5 +1,5 @@
 using System.Data;
-using Domain.Author;
+using Domain.Repositories;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
@@ -14,7 +14,6 @@ public static class DependencyInjection
             new MySqlConnection(connectionString));
         
         services.AddScoped<IAuthorRepository, AuthorRepository>();
-        
         
         return services;
     }

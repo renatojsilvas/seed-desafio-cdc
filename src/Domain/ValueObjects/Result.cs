@@ -1,14 +1,15 @@
-﻿namespace Domain;
+﻿using System.Text.Json.Serialization;
+
+namespace Domain.ValueObjects;
 
 public class Result
 {
     public StatusCode StatusCode { get; set; }
     public Error? Error { get; set; }
     public List<Validation>? Validations { get; set; }
-    
-    public bool IsSuccess => StatusCode is StatusCode.Success;
-    public bool IsSuccessOrNoContentOrCreated => StatusCode is StatusCode.Success or StatusCode.Created or StatusCode.NoContent;
-    public bool HasValidations => StatusCode is StatusCode.HasValidations;
+    public bool IsSuccess => !HasError && !HasValidations;
+    public bool HasValidations => Validations is not null && Validations?.Count > 0;
+    public bool HasError => Error is not null;
 }
 
 public class Result<T> : Result
@@ -40,21 +41,7 @@ public class Result<T> : Result
         => new()
         {
             Validations = validations,
-            StatusCode = StatusCode.HasValidations
-        };
-
-    public static Result<T> EntityNotFound(string message)
-        => new()
-        {
-            StatusCode = StatusCode.NotFound,
-            Error = new Error(message)
-        };
-    
-    public static Result<T> NoContent(T value)
-        => new()
-        {
-            Value = value,
-            StatusCode = StatusCode.NoContent
+            StatusCode = StatusCode.BadRequest
         };
     
     public static Result<TOutput> FromResult<TInput, TOutput>(Result<TInput> input) =>
@@ -65,19 +52,12 @@ public class Result<T> : Result
             Validations = input.Validations ?? []
         };
 
-    public static Result<T> Created(T value)
-        => new()
-        {
-            StatusCode = StatusCode.Created,
-            Value = value
-        };
-
     public static implicit operator Result<T>(T value) => Success(value);
     public static implicit operator Result<T>(Exception exception) => Failure(exception);
     public static implicit operator Result<T>(List<Validation> validations) => FailureOnValidations(validations);
 }
 
-public record Error(string Message, Exception? Exception = null);
+public record Error(string Message, [property: JsonIgnore]Exception? Exception = null);
 
 public record Validation(string Property, string Error)
 {
@@ -87,9 +67,8 @@ public record Validation(string Property, string Error)
 public enum StatusCode
 {
     Success = 200,
-    Created = 201,
     NoContent = 204,
-    HasValidations = 400,
+    BadRequest = 400,
     NotFound = 404,
     Error = 500,
 }

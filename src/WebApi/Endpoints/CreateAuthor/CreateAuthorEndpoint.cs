@@ -1,5 +1,4 @@
 using Application.UseCases;
-using Domain;
 using FastEndpoints;
 
 namespace WebApi.Endpoints.CreateAuthor;
@@ -9,16 +8,19 @@ public class CreateUserEndpoint(CreateAuthorUseCase createAuthorUseCase)
 {
     public override void Configure()
     {
-        Post("/authors");
+        Post("/authors"); 
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(CreateAuthorRequest req, CancellationToken cancellationToken)
     {
         var result = await createAuthorUseCase.HandleAsync(req, cancellationToken);
-        
+
+        var (code, message) = result.ToEndpointResult();
+
         await SendAsync(
-            new { Author = result.Value }, 
+            message, 
+            code,
             cancellation: cancellationToken);
     }
 }
