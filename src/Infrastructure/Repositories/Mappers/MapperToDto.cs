@@ -3,10 +3,13 @@ using Infrastructure.Repositories.Dtos;
 
 namespace Infrastructure.Repositories.Mappers;
 
-public static class MapperToDto
+internal static class MapperToDto
 {
     public static AuthorDto ToDto(this Author author)
         => new(author.Name, 
                author.Email.Address, 
                author.Description);
+    
+    public static CategoryDto ToDto(this Category author)
+        => new(author.Name);
 }

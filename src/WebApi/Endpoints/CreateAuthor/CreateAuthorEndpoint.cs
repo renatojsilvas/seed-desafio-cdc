@@ -16,7 +16,13 @@ public class CreateUserEndpoint(CreateAuthorUseCase createAuthorUseCase)
     {
         var result = await createAuthorUseCase.HandleAsync(req, cancellationToken);
 
-        var (code, message) = result.ToEndpointResult();
+        var (code, message) = result.ToEndpointResult(
+            successMessage: new
+                {
+                    result.Value?.Name,
+                    result.Value?.Email,
+                    result.Value?.Description
+                });
 
         await SendAsync(
             message, 

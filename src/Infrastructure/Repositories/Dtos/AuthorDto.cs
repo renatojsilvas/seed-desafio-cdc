@@ -1,3 +1,3 @@
 namespace Infrastructure.Repositories.Dtos;
 
-public record AuthorDto(string Name, string Email, string Description);
+internal record AuthorDto(string Name, string Email, string Description);

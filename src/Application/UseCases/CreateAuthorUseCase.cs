@@ -1,5 +1,5 @@
+using Application.Repositories.Repositories;
 using Domain.Entities;
-using Domain.Repositories;
 using Domain.ValueObjects;
 
 namespace Application.UseCases;
@@ -23,17 +23,17 @@ public class CreateAuthorUseCase(IAuthorRepository authorRepository)
             return Result<CreateAuthorResponse>.FailureOnValidations([
                 new Validation("Email", $"{request.Email} already exists")]);
 
-        var authorResult = Author.Create(request.Name, request.Email, request.Description);
-        if (!authorResult.IsSuccess)
-            return Result<CreateAuthorResponse>.FromResult<Author, CreateAuthorResponse>(authorResult);
+        var createAuthorResult = Author.Create(request.Name, request.Email, request.Description);
+        if (!createAuthorResult.IsSuccess)
+            return Result<CreateAuthorResponse>.FromResult<Author, CreateAuthorResponse>(createAuthorResult);
         
-        var addResult = await authorRepository.AddAsync(authorResult.Value!, cancellationToken);
-        if (!addResult.IsSuccess)
-            return Result<CreateAuthorResponse>.FromResult<Author, CreateAuthorResponse>(addResult);
+        var addAuthorResult = await authorRepository.AddAsync(createAuthorResult.Value!, cancellationToken);
+        if (!addAuthorResult.IsSuccess)
+            return Result<CreateAuthorResponse>.FromResult<Author, CreateAuthorResponse>(addAuthorResult);
 
         return new CreateAuthorResponse(
-            authorResult.Value!.Name,
-            authorResult.Value!.Email.Address,
-            authorResult.Value!.Description);
+            createAuthorResult.Value!.Name,
+            createAuthorResult.Value!.Email.Address,
+            createAuthorResult.Value!.Description);
     }
 }

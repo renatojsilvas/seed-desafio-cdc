@@ -1,3 +1,4 @@
+using Application;
 using Application.UseCases;
 using Domain;
 using FastEndpoints;
@@ -11,12 +12,12 @@ public class CreateUserValidator : Validator<CreateAuthorRequest>
     {
         RuleFor(x => x.Name)
             .NotNull().WithMessage("Name is required")
-            .NotEmpty().WithMessage("Name is required");
+            .NotEmpty().WithMessage("Name cannot be empty");
         
         RuleFor(x => x.Email)
             .NotNull().WithMessage("Email is required")
-            .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Email is not valid");
+            .NotEmpty().WithMessage("Email cannot be empty")
+            .Must(x => x.Contains('@')).WithMessage("Invalid email address");
 
         RuleFor(x => x.Description)
             .NotNull()

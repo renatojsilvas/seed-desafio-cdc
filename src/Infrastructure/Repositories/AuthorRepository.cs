@@ -1,14 +1,14 @@
 using System.Data;
+using Application.Repositories.Repositories;
 using Dapper;
 using Domain.Entities;
-using Domain.Repositories;
 using Domain.ValueObjects;
 using Infrastructure.Repositories.Base;
 using Infrastructure.Repositories.Mappers;
 
 namespace Infrastructure.Repositories;
 
-public class AuthorRepository(IDbConnection dbConnection) 
+internal sealed class AuthorRepository(IDbConnection dbConnection) 
     : Repository(dbConnection, "authors"), IAuthorRepository
 {
     private readonly IDbConnection _dbConnection = dbConnection;

@@ -1,4 +1,4 @@
-namespace Domain;
+namespace Application;
 
 public static class Constants
 {

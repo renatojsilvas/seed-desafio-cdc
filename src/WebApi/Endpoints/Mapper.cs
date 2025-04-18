@@ -4,9 +4,9 @@ using Domain.ValueObjects;
 
 namespace WebApi.Endpoints.CreateAuthor;
 
-public static class CreateAuthorResponseMapper
+public static class Mapper
 {
-    public static (int Code, object Message) ToEndpointResult(this Result<CreateAuthorResponse> result)
+    public static (int Code, object Message) ToEndpointResult<T>(this Result<T> result, object? successMessage)
     {
         if (result.HasError)
         {
@@ -37,12 +37,6 @@ public static class CreateAuthorResponseMapper
             return (Code: (int)result.StatusCode, Message: message);
         }
         
-        return (StatusCodes.Status200OK, 
-            new
-            {
-                result.Value!.Name,
-                result.Value!.Email,
-                result.Value!.Description
-            });
+        return (StatusCodes.Status200OK, successMessage);
     }
 }
