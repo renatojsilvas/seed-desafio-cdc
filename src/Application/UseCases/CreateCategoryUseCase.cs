@@ -13,7 +13,7 @@ public class CreateCategoryUseCase(ICategoryRepository categoryRepository)
         CreateCategoryRequest request, 
         CancellationToken cancellationToken)
     {
-        var isUniqueResult = await categoryRepository.IsUniqueAsync("name", request.Name, cancellationToken);
+        var isUniqueResult = await categoryRepository.IsUniqueAsync(nameof(request.Name), request.Name, cancellationToken);
         if (!isUniqueResult.IsSuccess)
             return Result<CreateCategoryResponse>.FromResult<bool, CreateCategoryResponse>(isUniqueResult);
         
