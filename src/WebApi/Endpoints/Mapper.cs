@@ -1,8 +1,6 @@
-using Application.UseCases;
-using Domain;
 using Domain.ValueObjects;
 
-namespace WebApi.Endpoints.CreateAuthor;
+namespace WebApi.Endpoints;
 
 public static class Mapper
 {
@@ -37,6 +35,6 @@ public static class Mapper
             return (Code: (int)result.StatusCode, Message: message);
         }
         
-        return (StatusCodes.Status200OK, successMessage);
+        return (StatusCodes.Status200OK, successMessage!);
     }
 }
