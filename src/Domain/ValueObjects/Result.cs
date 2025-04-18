@@ -10,20 +10,50 @@ public class Result
     public bool IsSuccess => !HasError && !HasValidations;
     public bool HasValidations => Validations is not null && Validations?.Count > 0;
     public bool HasError => Error is not null;
+    
+    public bool HasErrors => Error is not null;
+    
+    public static Result Failure(string message)
+        => new()
+        {
+            Error = new Error(message),
+            StatusCode = StatusCode.Error
+        };
+    
+    public static Result Success()
+        => new()
+        {
+            StatusCode = StatusCode.Success
+        };
+    
+    public static Result FailureOnValidations(List<Validation> validations)
+        => new()
+        {
+            Validations = validations,
+            StatusCode = StatusCode.BadRequest
+        };
+    
+    public static Result FromResult<TInput>(Result<TInput> input) =>
+        new()
+        {
+            StatusCode = input.StatusCode,
+            Error = input.Error,
+            Validations = input.Validations ?? []
+        };
 }
 
 public class Result<T> : Result
 {
     public T? Value { get; init; }
 
-    private static Result<T> Success(T value)
+    public static Result<T> Success(T value)
         => new()
         {
             Value = value,
             StatusCode = StatusCode.Success
         };
     
-    public static Result<T> Failure(string message)
+    public new static Result<T> Failure(string message)
         => new()
         {
             Error = new Error(message),
@@ -37,7 +67,7 @@ public class Result<T> : Result
             StatusCode = StatusCode.Error
         };
 
-    public static Result<T> FailureOnValidations(List<Validation> validations)
+    public new static Result<T> FailureOnValidations(List<Validation> validations)
         => new()
         {
             Validations = validations,

@@ -36,7 +36,7 @@ internal sealed class AuthorRepository(IDbConnection dbConnection)
             return e;
         }
     }
-    
+
     private const string InsertAuthorSql = 
         $"""
          INSERT INTO cdc.authors (name, email, description) 

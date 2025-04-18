@@ -3,7 +3,7 @@ using Domain.ValueObjects;
 
 namespace Domain.Entities;
 
-public partial class Author
+public class Author
 {
     public uint Id { get; private set; }
     public string Name { get; private set; }

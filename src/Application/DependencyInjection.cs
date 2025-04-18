@@ -9,6 +9,7 @@ public static class DependencyInjection
     { 
         services.AddScoped<CreateAuthorUseCase>();
         services.AddScoped<CreateCategoryUseCase>();
+        services.AddScoped<CreateBookUseCase>();
         
         return services;
     }
