@@ -6,7 +6,7 @@ namespace Application.UseCases;
 
 public class ListBookTitlesUseCase(IBookRepository bookRepository)
 {
-    public record ListBookTitlesRequest(int? Id = null);
+    public record ListBookTitlesRequest(int Page = 1, int PageSize = 10);
     public record ListBookTitlesResponse(IReadOnlyCollection<BookTitle> BookTitles);
 
     public async Task<Result<ListBookTitlesResponse>> HandleAsync(ListBookTitlesRequest request,
