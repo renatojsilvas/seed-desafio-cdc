@@ -10,7 +10,7 @@ public class Result
     public bool IsSuccess => !HasError && !HasValidations;
     public bool HasValidations => Validations is not null && Validations?.Count > 0;
     public bool HasError => Error is not null;
-    
+    public bool IsSuccessOrNoContent => IsSuccess || StatusCode is StatusCode.NoContent;
     public bool HasErrors => Error is not null;
     
     public static Result Failure(string message)
@@ -51,6 +51,14 @@ public class Result<T> : Result
         {
             Value = value,
             StatusCode = StatusCode.Success
+        };
+    
+    public static Result<T> NoContent()
+        => new()
+        {
+            Value = default,
+            Error = null,
+            StatusCode = StatusCode.NoContent
         };
     
     public new static Result<T> Failure(string message)

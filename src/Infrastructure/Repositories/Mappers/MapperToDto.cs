@@ -24,4 +24,10 @@ internal static class MapperToDto
             book.PublishDate.ToDateTime(TimeOnly.MinValue),
             book.AuthorId,
             book.CategoryId);
+
+    public static IReadOnlyCollection<BookTitle> ToDomain(this IReadOnlyCollection<BookTitleDto> books)
+        => books.Select(book => book.ToDomain()).ToList(); 
+    
+    private static BookTitle ToDomain(this BookTitleDto bookTitle)
+        => new(bookTitle.Id, bookTitle.Title);
 }

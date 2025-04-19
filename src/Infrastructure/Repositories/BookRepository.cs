@@ -4,6 +4,7 @@ using Dapper;
 using Domain.Entities;
 using Domain.ValueObjects;
 using Infrastructure.Repositories.Base;
+using Infrastructure.Repositories.Dtos;
 using Infrastructure.Repositories.Mappers;
 
 namespace Infrastructure.Repositories;
@@ -42,10 +43,35 @@ public class BookRepository(IDbConnection dbConnection)
             return e;
         }
     }
-    
+
+    public async Task<Result<IReadOnlyCollection<BookTitle>>> ListTitlesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var bookTitles = (await _dbConnection.QueryAsync<BookTitleDto>(
+                new CommandDefinition(ListBookTitlesSql, cancellationToken: cancellationToken))).ToList();
+            
+            return bookTitles.Count == 0 ?
+                Result<IReadOnlyCollection<BookTitle>>.NoContent() :
+                bookTitles.ToDomain().ToList();
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+    }
+
     private const string InsertBookSql = 
         $"""
          INSERT INTO cdc.books (title, summary, abstract, price, isbn, number_of_pages, publish_date, author_id, category_id) 
          VALUES (@title, @summary, @abstract, @price, @isbn, @numberOfPages, @publishDate, @authorId, @categoryId)
+         """;
+    
+    private const string ListBookTitlesSql = 
+        $"""
+         SELECT 
+             b.id As Id,
+             b.title As Title
+         FROM cdc.books b
          """;
 }
