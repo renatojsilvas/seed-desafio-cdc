@@ -2,111 +2,170 @@
 
 namespace Domain.ValueObjects;
 
-public class Result
+public interface IResult
 {
-    public StatusCode StatusCode { get; set; }
-    public Error? Error { get; set; }
-    public List<Validation>? Validations { get; set; }
-    public bool IsSuccess => !HasError && !HasValidations;
-    public bool HasValidations => Validations is not null && Validations?.Count > 0;
-    public bool HasError => Error is not null;
-    public bool IsSuccessOrNoContent => IsSuccess || StatusCode is StatusCode.NoContent;
-    public bool HasErrors => Error is not null;
-    
-    public static Result Failure(string message)
-        => new()
-        {
-            Error = new Error(message),
-            StatusCode = StatusCode.Error
-        };
-    
-    public static Result Success()
-        => new()
-        {
-            StatusCode = StatusCode.Success
-        };
-    
-    public static Result FailureOnValidations(List<Validation> validations)
-        => new()
-        {
-            Validations = validations,
-            StatusCode = StatusCode.BadRequest
-        };
-    
-    public static Result FromResult<TInput>(Result<TInput> input) =>
-        new()
-        {
-            StatusCode = input.StatusCode,
-            Error = input.Error,
-            Validations = input.Validations ?? []
-        };
+    ResultStatus Status { get; }
 }
 
-public class Result<T> : Result
+public interface IResult<out T> : IResult
 {
-    public T? Value { get; init; }
+    T? Data { get; }
+}
 
-    public static Result<T> Success(T value)
-        => new()
-        {
-            Value = value,
-            StatusCode = StatusCode.Success
-        };
-    
-    public static Result<T> NoContent()
-        => new()
-        {
-            Value = default,
-            Error = null,
-            StatusCode = StatusCode.NoContent
-        };
-    
-    public new static Result<T> Failure(string message)
-        => new()
-        {
-            Error = new Error(message),
-            StatusCode = StatusCode.Error
-        };
-    
-    public static Result<T> Failure(Exception exception)
-        => new()
-        {
-            Error = new Error(exception.Message, exception),
-            StatusCode = StatusCode.Error
-        };
+public interface IResultValidations : IResult
+{
+    IEnumerable<Validation> Validations { get; }
+}
 
-    public new static Result<T> FailureOnValidations(List<Validation> validations)
+public interface IResultError : IResult
+{
+    Error? Error { get; }
+}
+
+public interface IRequestEntityWarning : IResult
+{
+    EntityWarning? EntityWarning { get; }
+}
+
+
+public class Result : IResultError, IRequestEntityWarning, IResultValidations
+{
+    public bool IsSuccess => Status == ResultStatus.Success;
+    
+    public static Result Success() => new()
+    {
+        Status = ResultStatus.Success,
+    }; 
+    
+    public static Result WithError(string message) => new()
+    {
+        Status = ResultStatus.HasError,
+        Error = new Error(message)
+    }; 
+    
+    public static Result WithError(Exception exception) => new()
+    {
+        Status = ResultStatus.HasError,
+        Error = new Error(exception.Message)
+    };
+
+    public static Result WithValidations(IEnumerable<Validation> validations) => new()
+    {
+        Status = ResultStatus.HasValidations,
+        Validations = validations
+    };
+    
+    public static Result WithValidations(params Validation[] validations) => new()
+    {
+        Status = ResultStatus.HasValidations,
+        Validations = validations
+    };
+    
+    public static Result WithValidations(string propertyName, string description)
+        => WithValidations(new Validation(propertyName, description));
+
+    public static Result WithNoContent() => new()
+    {
+        Status = ResultStatus.NoContent
+    };
+    
+    public static Result WithEntityNotFound(string entity, object id, string description)
         => new()
         {
-            Validations = validations,
-            StatusCode = StatusCode.BadRequest
+            Status = ResultStatus.EntityNotFound,
+            EntityWarning = new EntityWarning(entity, id, description)
         };
     
-    public static Result<TOutput> FromResult<TInput, TOutput>(Result<TInput> input) =>
-        new()
+    public static Result WithEntityAlreadyExists(string entity, object id, string description)
+        => new()
         {
-            StatusCode = input.StatusCode,
-            Error = input.Error,
-            Validations = input.Validations ?? []
+            Status = ResultStatus.EntityAlreadyExists,
+            EntityWarning = new EntityWarning(entity, id, description)
         };
+    
+    public ResultStatus Status { get; protected set; }
+    public Error? Error { get; protected set; }
+    public EntityWarning? EntityWarning { get; protected set; }
+    public IEnumerable<Validation> Validations { get; protected set; } = [];
+}
 
-    public static implicit operator Result<T>(T value) => Success(value);
-    public static implicit operator Result<T>(Exception exception) => Failure(exception);
-    public static implicit operator Result<T>(List<Validation> validations) => FailureOnValidations(validations);
+public class Result<T> : Result, IResult<T>
+{
+    public T? Data { get; private init; }
+
+    public static Result<T> FromResult(Result data) => new()
+    {
+        Status = data.Status,
+        Error = data.Error,
+        EntityWarning = data.EntityWarning,
+        Validations = data.Validations
+    };
+    
+    public static Result<T> Success(T data) 
+        => new()
+        {
+            Data = data, 
+            Status = ResultStatus.Success
+        };
+   
+    public new static Result<T> WithNoContent() 
+        => new()
+        {
+            Status = ResultStatus.NoContent
+        };
+    
+    public new static Result<T> WithEntityNotFound(string entity, object id, string description)
+        => new()
+        {
+            Status = ResultStatus.EntityNotFound,
+            EntityWarning = new EntityWarning(entity, id, description)
+        };
+    
+    public new static Result<T> WithEntityAlreadyExists(string entity, object id, string description)
+        => new()
+        {
+            Status = ResultStatus.EntityAlreadyExists,
+            EntityWarning = new EntityWarning(entity, id, description)
+        };
+    
+    public new static Result<T> WithError(string message)
+        => new()
+        {
+            Status = ResultStatus.HasError,
+            Error = new Error(message)
+        };
+    
+    public new static Result<T> WithError(Exception exception) 
+        => WithError(exception.Message);
+    
+    public new static Result<T> WithValidations(params Validation[] validations)
+        => new()
+        {
+            Status = ResultStatus.HasValidations,
+            Validations = validations
+        };
+    
+    public new static Result<T> WithValidations(string propertyName, string description)
+        => WithValidations(new Validation(propertyName, description));
+    
+    public static implicit operator Result<T>(T data) => Success(data);
+    public static implicit operator Result<T>(Exception ex) => WithError(ex);
+    public static implicit operator Result<T>(Validation[] validations) => WithValidations(validations);
+    public static implicit operator Result<T>(Validation validation) => WithValidations(validation);
 }
 
 public record Error(string Message, [property: JsonIgnore]Exception? Exception = null);
 
-public record Validation(string Property, string Error)
-{
-    public override string ToString() => $"Property: {Property}, Error: {Error}";
-}
+public record Validation(string Property, string Error);
 
-public enum StatusCode
+public record EntityWarning(string Name, object Id, string Message);
+
+public enum ResultStatus
 {
-    Success = 200,
-    NoContent = 204,
-    BadRequest = 400,
-    NotFound = 404,
-    Error = 500,
+    Success,
+    NoContent,
+    EntityNotFound,
+    EntityAlreadyExists,
+    HasValidations,
+    HasError,
 }

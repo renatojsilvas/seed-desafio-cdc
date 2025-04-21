@@ -26,8 +26,8 @@ public class Author
             validations.AddRange(emailResult.Validations!);
         
         if (validations.Any())
-            return validations;
+            return validations.ToArray();
         
-        return new Author(name, emailResult.Value!, description);
+        return new Author(name, emailResult.Data!, description);
     }
 }

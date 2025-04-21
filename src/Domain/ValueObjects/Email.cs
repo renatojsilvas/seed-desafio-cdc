@@ -22,7 +22,7 @@ public sealed partial record Email
             validations.Add(new Validation(nameof(Address), "Email is invalid."));
 
         if (validations.Any())
-            return validations;
+            return validations.ToArray();
         
         return new Email(address);
     }

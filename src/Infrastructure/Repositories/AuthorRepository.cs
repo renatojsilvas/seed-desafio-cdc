@@ -21,7 +21,7 @@ internal sealed class AuthorRepository(IDbConnection dbConnection)
         
             var parameters = new
             {
-                Name = authorDto.Name,
+                Name = authorDto.AuthorName,
                 Email = authorDto.Email,
                 Description = authorDto.Description,
             };
@@ -29,7 +29,7 @@ internal sealed class AuthorRepository(IDbConnection dbConnection)
             var result = await _dbConnection.ExecuteAsync(
                 new CommandDefinition(InsertAuthorSql, parameters, cancellationToken: cancellationToken));
         
-            return result > 0 ? author : Result<Author>.Failure("Fail to insert author");
+            return result > 0 ? author : Result<Author>.WithError("Fail to insert author");
         }
         catch (Exception e)
         {

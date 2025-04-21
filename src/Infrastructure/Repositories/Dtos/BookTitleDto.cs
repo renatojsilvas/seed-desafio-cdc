@@ -1,7 +1,7 @@
 namespace Infrastructure.Repositories.Dtos;
 
-public record BookTitleDto
+internal record BookTitleDto
 {
-    public int Id { get; init; }
-    public string Title { get; init; } = string.Empty;
+    internal int Id { get; init; }
+    internal string Title { get; init; } = string.Empty;
 }

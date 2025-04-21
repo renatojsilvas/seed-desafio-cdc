@@ -4,7 +4,7 @@ namespace Domain.Entities;
 
 public class Category
 {
-    public uint Id { get; private set; }
+    public int Id { get; private set; }
     public string Name { get; private set; }
     
     private Category (string name)

@@ -19,9 +19,9 @@ public class CreateUserEndpoint(CreateAuthorUseCase createAuthorUseCase)
         var (code, message) = result.ToEndpointResult(
             successMessage: new
                 {
-                    result.Value?.Name,
-                    result.Value?.Email,
-                    result.Value?.Description
+                    result.Data?.Name,
+                    result.Data?.Email,
+                    result.Data?.Description
                 });
 
         await SendAsync(

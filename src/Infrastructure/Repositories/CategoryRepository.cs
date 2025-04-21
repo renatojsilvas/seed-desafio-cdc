@@ -21,13 +21,13 @@ internal sealed class CategoryRepository(IDbConnection dbConnection)
         
             var parameters = new
             {
-                Name = authorDto.Name
+                Name = authorDto.CategoryName,
             };
 
             var result = await _dbConnection.ExecuteAsync(
                 new CommandDefinition(InsertCategorySql, parameters, cancellationToken: cancellationToken));
         
-            return result > 0 ? category : Result<Category>.Failure("Fail to insert category");
+            return result > 0 ? category : Result<Category>.WithError("Fail to insert category");
         }
         catch (Exception e)
         {

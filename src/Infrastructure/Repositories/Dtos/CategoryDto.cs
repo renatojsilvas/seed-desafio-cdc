@@ -1,3 +1,7 @@
 namespace Infrastructure.Repositories.Dtos;
 
-internal record CategoryDto(string Name);
+internal record CategoryDto
+{
+    public int CategoryId { get; init; }
+    public string CategoryName { get; init; }  = string.Empty;
+}

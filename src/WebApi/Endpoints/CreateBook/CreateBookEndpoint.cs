@@ -19,7 +19,7 @@ public class CreateBookEndpoint(CreateBookUseCase createBookUseCase)
         var (code, message) = result.ToEndpointResult(
             successMessage: new 
                 {
-                    result.Value?.Name
+                    result.Data?.Name
                 });
 
         await SendAsync(

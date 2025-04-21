@@ -1,3 +1,4 @@
+using Application.Repositories.Repositories.Models;
 using Domain.Entities;
 using Infrastructure.Repositories.Dtos;
 
@@ -6,12 +7,19 @@ namespace Infrastructure.Repositories.Mappers;
 internal static class MapperToDto
 {
     public static AuthorDto ToDto(this Author author)
-        => new(author.Name, 
-               author.Email.Address, 
-               author.Description);
-    
+        => new AuthorDto()
+        {
+            AuthorName = author.Name,
+            Email = author.Email.Address,
+            Description = author.Description
+        };
+
     public static CategoryDto ToDto(this Category category)
-        => new(category.Name);
+        => new CategoryDto()
+        {
+            CategoryId = category.Id,
+            CategoryName = category.Name,
+        };
     
     public static BookDto ToDto(this Book book)
         => new (
@@ -30,4 +38,17 @@ internal static class MapperToDto
     
     private static BookTitle ToDomain(this BookTitleDto bookTitle)
         => new(bookTitle.Id, bookTitle.Title);
+
+    public static BookDetail ToDomain(this BookDetailDto bookDetail)
+    {
+        return new BookDetail(
+            Title: bookDetail.Title,
+            Summary: bookDetail.Summary,
+            Abstract: bookDetail.Abstract,
+            Price: bookDetail.Price,
+            NumberOfPages: bookDetail.NumberOfPages,
+            Isbn: bookDetail.Isbn,
+            AuthorName: bookDetail.Author.AuthorName,
+            AuthorDescription: bookDetail.Author.Description);
+    }
 }

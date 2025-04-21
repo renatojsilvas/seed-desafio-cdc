@@ -18,7 +18,7 @@ public class ListBookTitlesEndpoint(ListBookTitlesUseCase listBookTitlesUseCase)
         var result = await listBookTitlesUseCase.HandleAsync(req, cancellationToken);
 
         var (code, message) = result.ToEndpointResult(
-            successMessage: result.Value?.BookTitles.Select
+            successMessage: result.Data?.BookTitles.Select
                 (b => new
                 {
                     b.Id, 

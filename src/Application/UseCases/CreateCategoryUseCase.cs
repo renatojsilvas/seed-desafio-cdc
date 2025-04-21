@@ -15,23 +15,23 @@ public class CreateCategoryUseCase(ICategoryRepository categoryRepository)
     {
         var isUniqueResult = await categoryRepository.IsUniqueAsync(nameof(request.Name), request.Name, cancellationToken);
         if (!isUniqueResult.IsSuccess)
-            return Result<CreateCategoryResponse>.FromResult<bool, CreateCategoryResponse>(isUniqueResult);
+            return Result<CreateCategoryResponse>.FromResult(isUniqueResult);
         
-        var emailAlreadyExists = !isUniqueResult.Value!;
+        var emailAlreadyExists = !isUniqueResult.Data!;
         
         if (emailAlreadyExists)
-            return Result<CreateCategoryResponse>.FailureOnValidations([
-                new Validation("Name", $"{request.Name} already exists")]);
+            return Result<CreateCategoryResponse>.WithEntityAlreadyExists(nameof(Category), request.Name,
+                $"Entity with Name {request.Name} already exists.");
 
         var createCategoryResult = Category.Create(request.Name);
         if (!createCategoryResult.IsSuccess)
-            return Result<CreateCategoryResponse>.FromResult<Category, CreateCategoryResponse>(createCategoryResult);
+            return Result<CreateCategoryResponse>.FromResult(createCategoryResult);
         
-        var addCategoryResult = await categoryRepository.AddAsync(createCategoryResult.Value!, cancellationToken);
+        var addCategoryResult = await categoryRepository.AddAsync(createCategoryResult.Data!, cancellationToken);
         if (!addCategoryResult.IsSuccess)
-            return Result<CreateAuthorResponse>.FromResult<Category, CreateCategoryResponse>(addCategoryResult);
+            return Result<CreateCategoryResponse>.FromResult(addCategoryResult);
 
         return new CreateCategoryResponse(
-            createCategoryResult.Value!.Name);
+            createCategoryResult.Data!.Name);
     }
 }

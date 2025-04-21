@@ -20,7 +20,7 @@ public class CreateCategorytEndpoint(CreateCategoryUseCase createCategoryUseCase
         var (code, message) = result.ToEndpointResult(
             successMessage: new 
                 {
-                    result.Value?.Name
+                    result.Data?.Name
                 });
 
         await SendAsync(

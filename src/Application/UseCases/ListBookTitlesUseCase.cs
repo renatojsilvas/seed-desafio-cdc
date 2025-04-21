@@ -1,4 +1,5 @@
 using Application.Repositories.Repositories;
+using Application.Repositories.Repositories.Models;
 using Domain.Entities;
 using Domain.ValueObjects;
 
@@ -14,10 +15,8 @@ public class ListBookTitlesUseCase(IBookRepository bookRepository)
     {
         var listTitlesResult = await bookRepository.ListTitlesAsync(cancellationToken);
         if (!listTitlesResult.IsSuccess)
-            return Result<ListBookTitlesResponse>
-                       .FromResult<IReadOnlyCollection<BookTitle>, ListBookTitlesResponse> 
-                    (listTitlesResult);
+            return Result<ListBookTitlesResponse>.FromResult(listTitlesResult);
         
-        return new ListBookTitlesResponse(listTitlesResult.Value!.ToList());
+        return new ListBookTitlesResponse(listTitlesResult.Data!.ToList());
     }
 }

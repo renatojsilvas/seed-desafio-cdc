@@ -1,5 +1,6 @@
 using System.Data;
 using Application.Repositories.Repositories;
+using Application.Repositories.Repositories.Models;
 using Dapper;
 using Domain.Entities;
 using Domain.ValueObjects;
@@ -36,7 +37,33 @@ public class BookRepository(IDbConnection dbConnection)
             var result = await _dbConnection.ExecuteAsync(
                 new CommandDefinition(InsertBookSql, parameters, cancellationToken: cancellationToken));
         
-            return result > 0 ? book : Result<Book>.Failure("Fail to insert book");
+            return result > 0 ? book : Result<Book>.WithError("Fail to insert book");
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+    }
+
+    public async Task<Result<BookDetail>> GetDetailAsync(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            BookDetailDto? bookDetailDto = null;
+           _ = await _dbConnection.QueryAsync<BookDetailDto, AuthorDto, CategoryDto, BookDetailDto>(
+                new CommandDefinition(GetBookDetailSql, new { Id = id }, cancellationToken: cancellationToken),
+                (book, author, category) =>
+                {
+                    bookDetailDto = book;
+                    bookDetailDto.Author = author;
+                    bookDetailDto.Category = category;
+                    return bookDetailDto;
+                },
+                splitOn: "AuthorId, CategoryId");
+
+           return bookDetailDto?.ToDomain() ?? 
+                  Result<BookDetail>.WithEntityNotFound(nameof(Book), id, 
+                      $"{nameof(Book)} with {id} not found");
         }
         catch (Exception e)
         {
@@ -52,7 +79,7 @@ public class BookRepository(IDbConnection dbConnection)
                 new CommandDefinition(ListBookTitlesSql, cancellationToken: cancellationToken))).ToList();
             
             return bookTitles.Count == 0 ?
-                Result<IReadOnlyCollection<BookTitle>>.NoContent() :
+                Result<IReadOnlyCollection<BookTitle>>.WithNoContent() :
                 bookTitles.ToDomain().ToList();
         }
         catch (Exception e)
@@ -73,5 +100,27 @@ public class BookRepository(IDbConnection dbConnection)
              b.id As Id,
              b.title As Title
          FROM cdc.books b
+         """;
+    
+    private const string GetBookDetailSql = 
+        $"""
+         SELECT 
+         	b.title AS Title,
+         	b.summary AS Summary,
+         	b.abstract AS Abstract,
+         	b.number_of_pages  As NumberOfPages,
+         	b.price AS Price,
+         	b.isbn AS Isbn,
+         	b.publish_date AS PublishDate,
+         	a.id As AuthorId,
+         	a.name As AuthorName,
+         	a.email As Email,
+         	a.description As Description,
+         	c.id As CategoryId,
+         	c.name AS CategoryName
+         FROM cdc.books b 
+         JOIN cdc.authors a ON a.id = b.author_id
+         JOIN cdc.categories c ON c.id = b.category_id
+         WHERE b.id = @Id
          """;
 }

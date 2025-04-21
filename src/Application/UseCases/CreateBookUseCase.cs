@@ -27,72 +27,66 @@ public class CreateBookUseCase(
     {
         var ensureUniquenessResult = await EnsureUniquenessAsync(request, cancellationToken);
         if (!ensureUniquenessResult.IsSuccess)
-            return Result<CreateBookResponse>.FromResult<bool, CreateBookResponse>(ensureUniquenessResult);
+            return Result<CreateBookResponse>.FromResult(ensureUniquenessResult);
         
         var ensureRelationsExistsResult = await EnsureRelationsExistsAsync(request, cancellationToken);
         if (!ensureRelationsExistsResult.IsSuccess)
-            return Result<CreateBookResponse>.FromResult<bool, CreateBookResponse>(ensureRelationsExistsResult);
+            return Result<CreateBookResponse>.FromResult(ensureRelationsExistsResult);
         
         var createBookResult = Book.Create(request.Title, request.Summary, request.Abstract, request.Price,
             request.NumberOfPages, request.Isbn, request.PublishDate, request.AuthorId, request.CategoryId);
         if (!createBookResult.IsSuccess)
-            return Result<CreateBookResponse>.FromResult<Book, CreateBookResponse>(createBookResult);
+            return Result<CreateBookResponse>.FromResult(createBookResult);
         
-        var addCategoryResult = await bookRepository.AddAsync(createBookResult.Value!, cancellationToken);
+        var addCategoryResult = await bookRepository.AddAsync(createBookResult.Data!, cancellationToken);
         if (!addCategoryResult.IsSuccess)
-            return Result<CreateBookResponse>.FromResult<Book, CreateBookResponse>(addCategoryResult);
+            return Result<CreateBookResponse>.FromResult(addCategoryResult);
 
         return new CreateBookResponse(
-            createBookResult.Value!.Title);
+            createBookResult.Data!.Title);
     }
 
-    private async Task<Result<bool>> EnsureUniquenessAsync(CreateBookRequest request, CancellationToken cancellationToken)
+    private async Task<Result> EnsureUniquenessAsync(CreateBookRequest request, CancellationToken cancellationToken)
     {
-        var validations = new List<Validation>();
-        
         var isTitleUniqueResult = await bookRepository.IsUniqueAsync(nameof(request.Title), request.Title, cancellationToken);
         if (!isTitleUniqueResult.IsSuccess)
             return isTitleUniqueResult;
-        
-        if (!isTitleUniqueResult.Value)
-            validations.Add(new Validation(nameof(request.Title), $"{request.Title} already exists"));
+
+        if (!isTitleUniqueResult.Data)
+            return Result.WithEntityAlreadyExists(nameof(Book), request.Title,
+                $"{nameof(Book)} with title {request.Title} already exists.");
         
         var isIsbnUniqueResult = await bookRepository.IsUniqueAsync(nameof(request.Isbn), request.Isbn, cancellationToken);
         if (!isIsbnUniqueResult.IsSuccess)
             return isIsbnUniqueResult;
-        
-        if (!isIsbnUniqueResult.Value)
-            validations.Add(new Validation(nameof(request.Isbn), $"{request.Isbn} already exists"));
-        
-        if (validations.Any())
-            return Result<bool>.FailureOnValidations(validations);
 
-        return true;
+        if (!isIsbnUniqueResult.Data)
+            return Result.WithEntityAlreadyExists(nameof(Book), request.Isbn,
+                $"{nameof(Book)} with ISBN {request.Isbn} already exists.");
+
+        return Result.Success();
     }
     
-    private async Task<Result<bool>> EnsureRelationsExistsAsync(CreateBookRequest request, CancellationToken cancellationToken)
+    private async Task<Result> EnsureRelationsExistsAsync(CreateBookRequest request, CancellationToken cancellationToken)
     {
-        var validations = new List<Validation>();
-        
         var authorExistsResult = await authorRepository.ExistsAsync(request.AuthorId, cancellationToken);
         if (!authorExistsResult.IsSuccess)
             return authorExistsResult;
         
-        var authorExists = authorExistsResult.Value!;
+        var authorExists = authorExistsResult.Data;
         if (!authorExists)
-            validations.Add(new Validation(nameof(request.AuthorId), $"Author with {request.AuthorId} does not exists"));
-        
+            return Result.WithEntityNotFound(nameof(Author), request.AuthorId,
+                $"{nameof(Author)} with {request.AuthorId} not found");
+
         var categoryExistsResult = await categoryRepository.ExistsAsync(request.CategoryId, cancellationToken);
         if (!categoryExistsResult.IsSuccess)
             return categoryExistsResult;
         
-        var categoryExists = categoryExistsResult.Value!;
+        var categoryExists = categoryExistsResult.Data;
         if (!categoryExists)
-            validations.Add(new Validation(nameof(request.CategoryId), $"Category with {request.CategoryId} does not exists"));
-        
-        if (validations.Any())
-            return Result<bool>.FailureOnValidations(validations);
+            return Result.WithEntityNotFound(nameof(Category), request.AuthorId,
+                $"Category with {request.CategoryId} not found");
 
-        return validations;
+        return Result.Success();
     }
 }
