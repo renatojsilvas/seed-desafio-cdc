@@ -33,6 +33,19 @@ internal static class MapperToDto
             book.AuthorId,
             book.CategoryId);
 
+    public static CountryDto ToDto(this Country country)
+        => new()
+        {
+            CountryName = country.Name
+        };
+    
+    public static StateDto ToDto(this State state)
+        => new()
+        {
+            StateName = state.Name,
+            CountryId = state.CountryId
+        };
+
     public static IReadOnlyCollection<BookTitle> ToDomain(this IReadOnlyCollection<BookTitleDto> books)
         => books.Select(book => book.ToDomain()).ToList(); 
     

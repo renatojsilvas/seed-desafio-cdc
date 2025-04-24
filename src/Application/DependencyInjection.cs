@@ -12,6 +12,8 @@ public static class DependencyInjection
         services.AddScoped<CreateBookUseCase>();
         services.AddScoped<ListBookTitlesUseCase>();
         services.AddScoped<GetBookDetailUseCase>();
+        services.AddScoped<CreateCountryUseCase>();
+        services.AddScoped<CreateStateUseCase>();
         
         return services;
     }
